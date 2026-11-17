@@ -4,12 +4,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorityAuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
 import com.demo.securitystudy.config.properties.RememberMeProperties;
 
@@ -43,7 +49,8 @@ public class SecurityConfig {
                 .requestMatchers("/join").permitAll()                 // 회원가입: 누구나 접근
                 .requestMatchers("/login").permitAll()                // 로그인 페이지: 누구나 접근
                 .requestMatchers("/users").hasAnyRole("USER")         // USER 또는 ADMIN 권한이면 접근
-                .requestMatchers("/admin").hasRole("ADMIN")           // ADMIN 권한만 접근
+                .requestMatchers("/admin").access(customAuthorizationManager())
+                // .requestMatchers("/admin").hasRole("ADMIN")           // ADMIN 권한만 접근
                 .anyRequest().denyAll()                               // 위에 없는 경로는 전부 접근 불가
             )
 
@@ -53,9 +60,6 @@ public class SecurityConfig {
                     .rememberMeParameter("remember-me")         // 로그인 form 체크박스의 name 값
                     .tokenValiditySeconds(14 * 24 * 60 * 60)    // 쿠키 유지 기간 (2주)
             )
-
-
-
         ;
 
         return http.build();
@@ -75,6 +79,26 @@ public class SecurityConfig {
             .withRolePrefix("ROLE_")                           // ROLE 접두사 (기본값도 "ROLE_")
             .role("ADMIN").implies("USER")       // ADMIN > USER : ADMIN은 USER 권한도 가짐
             .build();
+    }
+
+    /**
+     * 커스텀 인가 로직: 직접 조건을 짜서 접근 허용 여부를 결정
+     * (지역별, 플래그별 등 여러 조건으로 체크 가능)
+     * @return 요청마다 인가 허용 여부를 판단하는 AuthorizationManager
+     */
+    private AuthorizationManager<RequestAuthorizationContext> customAuthorizationManager(){
+
+        return (authentication, context)-> {
+            Authentication auth = authentication.get();
+            if (auth == null) {
+                return new AuthorizationDecision(false);   // 인증 정보가 없으면 거부
+            }
+            // ROLE_ADMIN 권한이 있는지 확인
+            boolean allowed = auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+
+            return new AuthorizationDecision(allowed);  // true면 허용, false면 403
+        };
     }
 
 
