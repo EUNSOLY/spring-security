@@ -2,6 +2,7 @@ package com.demo.securitystudy.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -18,8 +19,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         http
-            // 수 많은 필터 중 CSRF 필터는 보안관련된 것 일단 현재는 disable(미사용)
-            .csrf(AbstractHttpConfigurer::disable)
+            // 수 많은 필터 중 CSRF 필터는 보안관련된 것
+            .csrf(Customizer.withDefaults())
 
             // 로그인 필터 설정
             .formLogin(login-> login
