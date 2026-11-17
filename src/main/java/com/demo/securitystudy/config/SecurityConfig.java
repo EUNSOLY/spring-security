@@ -20,7 +20,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         http
             // 수 많은 필터 중 CSRF 필터는 보안관련된 것
-            .csrf(Customizer.withDefaults())
+            .csrf(csrf-> csrf
+                    .ignoringRequestMatchers("/logout")
+                )
 
             // 로그인 필터 설정
             .formLogin(login-> login
