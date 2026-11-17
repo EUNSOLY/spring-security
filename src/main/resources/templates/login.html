@@ -2,6 +2,8 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>로그인</title>
 </head>
 <body>
@@ -10,6 +12,7 @@
 <p th:if="${param.error}" style="color: red;">아이디 또는 비밀번호가 올바르지 않습니다.</p>
 <p th:if="${param.logout}">로그아웃되었습니다.</p>
 
+<!--th:action="@{/login} : CSRF hidden input 자동삽입 -->
 <form th:action="@{/login}" method="post">
     <div>
         <label for="username">아이디</label>
