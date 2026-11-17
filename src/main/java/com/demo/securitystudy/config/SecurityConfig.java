@@ -2,6 +2,8 @@ package com.demo.securitystudy.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -37,12 +39,12 @@ public class SecurityConfig {
 
             // 인가 필터 설정
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/").permitAll()                                // 메인: 누구나 접근
-                .requestMatchers("/join").permitAll()                            // 회원가입: 누구나 접근
-                .requestMatchers("/login").permitAll()                           // 로그인 페이지: 누구나 접근
-                .requestMatchers("/users").hasAnyRole("USER", "ADMIN")    // USER 또는 ADMIN 권한이면 접근
-                .requestMatchers("/admin").hasRole("ADMIN")                     // ADMIN 권한만 접근
-                .anyRequest().denyAll()                                           // 위에 없는 경로는 전부 접근 불가
+                .requestMatchers("/").permitAll()                     // 메인: 누구나 접근
+                .requestMatchers("/join").permitAll()                 // 회원가입: 누구나 접근
+                .requestMatchers("/login").permitAll()                // 로그인 페이지: 누구나 접근
+                .requestMatchers("/users").hasAnyRole("USER")         // USER 또는 ADMIN 권한이면 접근
+                .requestMatchers("/admin").hasRole("ADMIN")           // ADMIN 권한만 접근
+                .anyRequest().denyAll()                               // 위에 없는 경로는 전부 접근 불가
             )
 
             // remember me 설정
@@ -63,6 +65,16 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
+    }
+
+
+    // ROLE 계층 설정: 상위 ROLE은 하위 ROLE 권한을 자동으로 가짐
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl
+            .withRolePrefix("ROLE_")                           // ROLE 접두사 (기본값도 "ROLE_")
+            .role("ADMIN").implies("USER")       // ADMIN > USER : ADMIN은 USER 권한도 가짐
+            .build();
     }
 
 
