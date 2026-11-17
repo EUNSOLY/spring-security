@@ -21,3 +21,7 @@ logging:
     org.hibernate.SQL: DEBUG              # 실행되는 SQL
     org.hibernate.orm.jdbc.bind: TRACE    # ? 자리에 들어간 실제 값 (Boot 3 / Hibernate 6)
 
+security:
+  rememberme:
+    key: ${REMEMBER_ME_KEY}
+

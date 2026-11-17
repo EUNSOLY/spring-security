@@ -2,18 +2,23 @@ package com.demo.securitystudy.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.demo.securitystudy.config.properties.RememberMeProperties;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity(debug = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final RememberMeProperties rememberMeProperties;
 
     // 시큐리티 필터 구획을 내가 커스텀하기 위한 Bean 등록
     @Bean
@@ -38,6 +43,13 @@ public class SecurityConfig {
                 .requestMatchers("/users").hasAnyRole("USER", "ADMIN")    // USER 또는 ADMIN 권한이면 접근
                 .requestMatchers("/admin").hasRole("ADMIN")                     // ADMIN 권한만 접근
                 .anyRequest().denyAll()                                           // 위에 없는 경로는 전부 접근 불가
+            )
+
+            // remember me 설정
+            .rememberMe(me-> me
+                    .key(rememberMeProperties.key())            // 쿠키 위조 방지용 서명 키 (서버만 알고 있어야 함)
+                    .rememberMeParameter("remember-me")         // 로그인 form 체크박스의 name 값
+                    .tokenValiditySeconds(14 * 24 * 60 * 60)    // 쿠키 유지 기간 (2주)
             )
 
 
