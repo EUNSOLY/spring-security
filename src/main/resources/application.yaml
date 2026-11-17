@@ -1,3 +1,8 @@
+server:
+  servlet:
+    session:
+      timeout: 3600 # 기본값 1800초 (90m 분기반)
+
 spring:
   application:
     name: securitystudy

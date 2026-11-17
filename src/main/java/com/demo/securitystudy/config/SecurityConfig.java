@@ -11,6 +11,7 @@ import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -60,6 +61,14 @@ public class SecurityConfig {
                     .rememberMeParameter("remember-me")         // 로그인 form 체크박스의 name 값
                     .tokenValiditySeconds(14 * 24 * 60 * 60)    // 쿠키 유지 기간 (2주)
             )
+
+            // 세션 설정
+            .sessionManagement(session-> session
+                // .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 시큐리티가 세션을 만들지도, 쓰지도 않음 (JWT처럼 요청마다 인증할 때)
+                .sessionFixation().changeSessionId()  // 세션 고정 공격 방지: 로그인 성공 시 세션 ID만 새로 바꿈 (세션 안 데이터는 유지)
+            )
+
+
         ;
 
         return http.build();
