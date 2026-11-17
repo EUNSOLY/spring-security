@@ -10,3 +10,10 @@ spring:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/security
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+
+
