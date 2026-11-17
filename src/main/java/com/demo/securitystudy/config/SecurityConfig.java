@@ -20,11 +20,24 @@ public class SecurityConfig {
         http
             // 수 많은 필터 중 CSRF 필터는 보안관련된 것 일단 현재는 disable(미사용)
             .csrf(AbstractHttpConfigurer::disable)
+
             // 로그인 필터 설정
             .formLogin(login-> login
                 .loginProcessingUrl("/login") // 로그인 form이 아이디/비번을 보낼 POST 주소 (이 요청은 Spring Security 필터가 가로채서 인증 처리함(컨트롤없어도)
                 .loginPage("/login") // 로그인 화면을 보여줄 주소(GET) 로그인 안한 사용자가 보호된 페이지로 들어오면 해당 경로로 보내짐
             )
+
+            // 인가 필터 설정
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/").permitAll()                                // 메인: 누구나 접근
+                .requestMatchers("/join").permitAll()                            // 회원가입: 누구나 접근
+                .requestMatchers("/login").permitAll()                           // 로그인 페이지: 누구나 접근
+                .requestMatchers("/users").hasAnyRole("USER", "ADMIN")    // USER 또는 ADMIN 권한이면 접근
+                .requestMatchers("/admin").hasRole("ADMIN")                     // ADMIN 권한만 접근
+                .anyRequest().denyAll()                                           // 위에 없는 경로는 전부 접근 불가
+            )
+
+
 
         ;
 
