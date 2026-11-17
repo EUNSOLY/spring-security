@@ -1,5 +1,11 @@
 package com.demo.securitystudy.domain.user.service;
 
+import java.util.NoSuchElementException;
+
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -34,5 +40,16 @@ public class UserService {
         userEntity.setRole(UserRole.USER);
 
         userRepository.save(userEntity);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserEntity userEntity = userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
+        return User.builder()
+            .username(userEntity.getUsername())
+            .password(userEntity.getPassword())
+            .roles(userEntity.getRole().name())
+            .build();
     }
 }
