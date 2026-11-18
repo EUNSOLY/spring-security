@@ -8,13 +8,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 
+import com.demo.securitystudy.security.filter.JwtFilter;
 import com.demo.securitystudy.security.filter.LoginFilter;
 import com.demo.securitystudy.security.handler.LoginSuccessHandler;
+import com.demo.securitystudy.util.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final LoginSuccessHandler loginSuccessHandler;
+    private final JwtUtil jwtUtil;
 
     // 시큐리티 설정 Bean 등록
     @Bean
@@ -36,8 +41,16 @@ public class SecurityConfig {
             .formLogin(AbstractHttpConfigurer::disable)
             // 커스텀 필터 추가 UsernamePasswordAuthenticationFilter 앞에
             .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration),loginSuccessHandler), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(new JwtFilter(jwtUtil), SecurityContextHolderFilter.class)
             // 모든 경로 접근 허용 (requestMatchers("/**").permitAll() 도 가능)
-            .authorizeHttpRequests(auth-> auth.anyRequest().permitAll())
+            // .authorizeHttpRequests(auth-> auth.anyRequest().permitAll())
+            // 경로에 따른 접근권한(인가) 설정
+            .authorizeHttpRequests(auth-> auth
+                .requestMatchers("/api/v1").permitAll()
+                .requestMatchers("/api/v1/").permitAll()
+                .requestMatchers("/api/v1/user").hasRole("USER")
+                .anyRequest().hasRole("ADMIN")
+            )
             // 세션 설정 (토큰 인증이기 때문에 서버에서 기억할 필요 X)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
