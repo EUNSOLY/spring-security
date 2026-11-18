@@ -6,4 +6,5 @@ import com.demo.securitystudy.domain.jwt.entity.RefreshEntity;
 
 public interface RefreshRepository extends JpaRepository<RefreshEntity,Long> {
 
+    boolean existsByRefresh(String refreshToken);
 }
