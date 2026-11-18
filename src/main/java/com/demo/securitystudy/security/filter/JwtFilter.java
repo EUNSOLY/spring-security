@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.demo.securitystudy.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,11 +68,16 @@ public class JwtFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             filterChain.doFilter(request, response);
-            
-        } catch (Exception e) {
+
+        } catch (ExpiredJwtException e){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"error\":\"토큰 만료 또는 유효하지 않은 토큰\"}");
+            response.getWriter().write("{\"error\":\"토큰 만료 되었습니다\"}");
+        }
+        catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\":\"유효하지 않은 토큰입니다.\"}");
         }
 
     }
