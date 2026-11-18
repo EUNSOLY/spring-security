@@ -19,10 +19,12 @@ public class JwtUtil {
 
     private final SecretKey key;
     private final long accessTokenExpireTime;
+    private final long refreshTokenExpireTime;
 
     public JwtUtil(JwtProperties jwtProperties){
         key = Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
         accessTokenExpireTime = jwtProperties.accessTokenExpireTime();
+        refreshTokenExpireTime = jwtProperties.refreshTokenExpireTime();
     }
 
 
@@ -36,6 +38,22 @@ public class JwtUtil {
             .subject(username)                   // 토큰 주인 (sub): 누구의 토큰인지
             .claim("role", role)          // 커스텀 클레임: 권한 정보
             .claim("tokenType", "ACCESS")  // 커스텀 클레임: 토큰 종류 (ACCESS / REFRESH 구분용)
+            .issuedAt(now)                       // 발급 시간 (iat)
+            .expiration(expireDate)              // 만료 시간 (exp): 지나면 검증 실패
+            .signWith(key)                       // 비밀키로 서명 (위조 방지)
+            .compact();                          // 최종 JWT 문자열(header.payload.signature)로 만들기
+    }
+
+    // Refresh 토큰 생성
+    public String createRefreshToken(String username, String role){
+
+        Date now = new Date();
+        Date expireDate = new Date(now.getTime() + refreshTokenExpireTime);
+
+        return Jwts.builder()
+            .subject(username)                   // 토큰 주인 (sub): 누구의 토큰인지
+            .claim("role", role)          // 커스텀 클레임: 권한 정보
+            .claim("tokenType", "REFRESH")  // 커스텀 클레임: 토큰 종류 (ACCESS / REFRESH 구분용)
             .issuedAt(now)                       // 발급 시간 (iat)
             .expiration(expireDate)              // 만료 시간 (exp): 지나면 검증 실패
             .signWith(key)                       // 비밀키로 서명 (위조 방지)

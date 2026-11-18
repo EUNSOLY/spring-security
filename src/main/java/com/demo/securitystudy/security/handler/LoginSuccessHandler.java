@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.demo.securitystudy.domain.jwt.service.RefreshService;
 import com.demo.securitystudy.util.JwtUtil;
 
 import jakarta.servlet.ServletException;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
+    private final RefreshService refreshService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -28,12 +30,15 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
         String assessToken = jwtUtil.createAccessToken(username, role);
+        String refreshToken = jwtUtil.createRefreshToken(username, role);
+
+        refreshService.saveRefreshToken(username,refreshToken);
 
         // 응답
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        String json = String.format("{\"accessToken\":\"%s\"}", assessToken);
+        String json = String.format("{\"accessToken\":\"%s\",\"refreshToken\":\"%s\"}", assessToken,refreshToken);
         response.getWriter().write(json);
         response.getWriter().flush();
 
